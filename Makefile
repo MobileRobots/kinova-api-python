@@ -8,15 +8,11 @@ PYTHON_INCLUDE:=/usr/include/python2.7
 endif
 
 ifndef KINOVA_INCLUDE_DIR
-KINOVA_INCLUDE_DIR:=/usr/include/KinovaAPI
+KINOVA_INCLUDE_DIR:=/usr/include
 endif
 
-ifndef KINOVA_LIB_DIR
-KINOVA_LIB_DIR:=/usr/lib
-endif
-
-ifndef KINOVA_LIB
-KINOVA_LIB:=Kinova.API.USBCommandLayerUbuntu.so
+ifndef KINOVA_LINK
+KINOVA_LINK:=-L/usr/lib -l:Kinova.API.USBCommandLayerUbuntu.so -l:Kinova.API.CommLayerUbuntu.so
 endif
 
 all: _kinovapy.so kinovapy.py
@@ -26,7 +22,7 @@ clean:
 
 
 _kinovapy.so: kinovapy.cc 
-	$(CXX) -fPIC -g -shared -o $@ -I$(KINOVA_INCLUDE_DIR) -I$(PYTHON_INCLUDE) $< -L$(KINOVA_LIB_DIR)  -l:$(KINOVA_LIB)
+	$(CXX) -fPIC -g -shared -o $@ -I$(KINOVA_INCLUDE_DIR) -I$(PYTHON_INCLUDE) $< $(KINOVA_LINK)
 
 # maybe need -Wl,-rpath,$(KINOVA_LIB_DIR)
 
