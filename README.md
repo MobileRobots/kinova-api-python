@@ -8,10 +8,24 @@ Run `make` to build.  The Makefile assumes you are using Python
 locations.  To use a different version of Python or alternate locations or Kinova 
 library, you can override the Make variables `PYTHON_INCLUDE` (Python include
 directory path), `KINOVA_INCLUDE_DIR` (Kinova include directory path),
-`KINOVA_LIB_DIR` (Kinova library directory), or `KINOVA_LIB` (name of the Kinova
-shared library to link to). For example, to use `emulate_kinova` library instead
+`KINOVA_LINK` (Kinova linker flags).
+
+For example, to use `emulate_kinova` library instead
 of the real Kinova library:
-    make KINOVA_INCLUDE_DIR=../emulate-kinova-api/headers.50104 KINOVA_LIB_DIR=../emulate-kinova-api KINOVA_LIB=emulate_kinova_50104.so
+
+    make KINOVA_INCLUDE_DIR=../emulate-kinova-api/headers.50104 KINOVA_LINK=-L../emulate-kinova-api -l:emulate_kinova_50104.so
+
+Use the `-l:` link option instead of `-l` since the Kinova libraries and
+`emulate_kinova` library don't start with "lib".
+
+Swig cannot parse the relatively new GCC "visibilty" attribute used by
+the Kinova header files, so you may want to use the header files from
+`emulate-kinova-api` even if using the real Kinova library, since the
+emulate-kinova-api headers have been modified to omit the "visibilty" attributes
+on functions if `KINOVA_NOEXPORT` is define, which this Swig wrapper does:
+
+    make KINOVA_INCLUDE_DIR=../emulate-kinova-api/headers.50104
+
 You will also need to add the library directory to the `LD_LIBRARY_PATH`
 environment variable (e.g. for the example above, use `export
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../emulate-kinova-api`). Or copy the shared
@@ -52,4 +66,8 @@ but in Python both the result and count are returned:
 An extra function has been added to the Python wrapper: `SetActiveDeviceNum(i)`
 takes an index instead of a `KinovaDevice` object.
 
+The contents of the following objects can be printed/converted to strings:
+* QuickStatus
+* AngularPosition
+(i.e. they have __str__() methods defined)
 
