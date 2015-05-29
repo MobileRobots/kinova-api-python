@@ -6,17 +6,15 @@ if kinovapy.InitAPI() != kinovapy.NO_ERROR_KINOVA:
   print 'Error initializing Kinova API'
   sys.exit(1)
 
-result = 0
-result,deviceCount = kinovapy.GetDeviceCount()
+deviceCount = kinovapy.GetNumDevices()
+print 'deviceCount', deviceCount
 
-print deviceCount
-print result
-print kinovapy.NO_ERROR_KINOVA
-if result != kinovapy.NO_ERROR_KINOVA:
+if deviceCount < 0:
   print 'Error getting device count'
   sys.exit(2)
 
-print 'Found %d devices' % (deviceCount)
+print 'device count', deviceCount
+print 'Found %d devices' % deviceCount
 
 for i in xrange(0, deviceCount):
   print 'Selecting arm #%d' % (i)
@@ -25,6 +23,7 @@ for i in xrange(0, deviceCount):
   status = kinovapy.QuickStatus()
   kinovapy.GetQuickStatus(status)
 
+  print 'Homing arm and fingers...'
   kinovapy.MoveHome()
   kinovapy.InitFingers()
 
@@ -35,8 +34,8 @@ for i in xrange(0, deviceCount):
   pointToSend.Position.Type = kinovapy.ANGULAR_POSITION
   pointToSend.LimitationsActive = 1
 
-  # Set velocity limitation to 20 degrees per second for joint 1, 2 and 3.
-  pointToSend.Limitations.speedParameter1 = 20.0
+  # Set velocity limitation to 30 degrees per second for joint 1, 2 and 3.
+  pointToSend.Limitations.speedParameter1 = 30.0
 
   # Set velocity limitation to 20 degrees per second for joint 4, 5 and 6
   pointToSend.Limitations.speedParameter2 = 20.0
@@ -63,25 +62,33 @@ for i in xrange(0, deviceCount):
     pointToSend.Position.Fingers.Finger2 = 0.0
     pointToSend.Position.Fingers.Finger3 = 0.0
 
-  print "Sending trajectory" 
+  print "Sending trajectory 1" 
 
   # Add the point to the robot's FIFO
   kinovapy.SendAdvanceTrajectory(pointToSend)
 
   # Modify the position of the actuator #3
+  print 'Moving joint 1 back by -100.0'
   pointToSend.Position.Actuators.Actuator1 = actualPosition.Actuators.Actuator1 - 100.0
 
   # Add the point to the robot's FIFO
   kinovapy.SendAdvanceTrajectory(pointToSend)
 
   # Modify the position of the actuator #1
+  print 'Moving joint 1 forward by 100'
   pointToSend.Position.Actuators.Actuator1 = actualPosition.Actuators.Actuator1 + 100.0
 
   # Add the point to the robot's FIFO
   kinovapy.SendAdvanceTrajectory(pointToSend)
 
   # Modify again the position of the actuator #3
-  pointToSend.Position.Actuators.Actuator1 = actualPosition.Actuators.Actuator1 - 50
+  print 'Moving joint 3 up by 20'
+  pointToSend.Position.Actuators.Actuator3 = actualPosition.Actuators.Actuator3 + 20
+  kinovapy.SendAdvanceTrajectory(pointToSend)
+
+  # Modify again the position of the actuator #3
+  print 'Moving joint 3 down by 10'
+  pointToSend.Position.Actuators.Actuator3 = actualPosition.Actuators.Actuator3 - 10
 
   # Add the point to the robot's FIFO
   kinovapy.SendAdvanceTrajectory(pointToSend)
