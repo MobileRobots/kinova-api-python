@@ -63,11 +63,19 @@ but in Python both the result and count are returned:
 
     result,count = kinovapy.GetDeviceCount()
 
-An extra function has been added to the Python wrapper: `SetActiveDeviceNum(i)`
+An extra function has been added to the wrapper that only returns
+the count, or -1 on error: `GetNumDevices()`.
+
+An extra function has also been added to the Python wrapper: `SetActiveDeviceNum(i)`
 takes an index instead of a `KinovaDevice` object.
 
-The contents of the following objects can be printed/converted to strings:
+The contents of the following objects can be printed/converted to strings for easier 
+debugging and logging, similar to native Python objects and data structures:
 * QuickStatus
 * AngularPosition
-(i.e. they have __str__() methods defined)
+* AngularInfo
+* CartesianPosition
+* CartesianInfo
+* ForcesInfo
 
+(i.e. they have __str__() methods defined)
