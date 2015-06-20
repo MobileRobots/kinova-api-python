@@ -75,6 +75,33 @@ int GetNumDevices() {
   }
 }
 
+%extend CartesianInfo {
+  char *__str__() {
+    static char tmp[512];
+    snprintf(tmp, 512, "[%f, %f, %f]",
+      self->X,
+      self->Y,
+      self->Z
+    );
+    return tmp;
+  }
+}
+
+%extend CartesianPosition {
+  char *__str__() {
+    static char tmp[512];
+    snprintf(tmp, 512, "<kinovapy.CartesianPosition> Coordinates: [%f, %f, %f], Fingers: [%f, %f, %f]",
+      self->Coordinates.X,
+      self->Coordinates.Y,
+      self->Coordinates.Z,
+      self->Fingers.Finger1,
+      self->Fingers.Finger2,
+      self->Fingers.Finger3
+    );
+    return tmp;
+  }
+}
+
 %extend QuickStatus {
   char *__str__() {
     static char tmp[512];
@@ -88,6 +115,29 @@ int GetNumDevices() {
     return tmp;
   }
 }
+
+
+%extend ForcesInfo {
+  char *__str__() {
+    static char tmp[512];
+    snprintf(tmp, 512, "actuator_forces: [%f, %f, %f, %f, %f, %f], 'cartesian_forces: [%f, %f, %f, %f, %f, %f]",
+      self->Actuator1,
+      self->Actuator2,
+      self->Actuator3,
+      self->Actuator4,
+      self->Actuator5,
+      self->Actuator6,
+      self->X,
+      self->Y,
+      self->Z,
+      self->ThetaX,
+      self->ThetaY,
+      self->ThetaZ
+    );
+    return tmp;
+  }
+}
+
 
 %include "KinovaTypes.h"
 %include "Kinova.API.CommLayerUbuntu.h"
