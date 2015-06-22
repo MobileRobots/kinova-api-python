@@ -105,7 +105,7 @@ int GetNumDevices() {
 %extend QuickStatus {
   char *__str__() {
     static char tmp[512];
-    snprintf(tmp, 512, "<kinovapy.QuickStatus> Fingers: (%d, %d, %d), ControlEnable: %d, ControlModule: %d, ControlFrame: %d, CatesianFault: %d, ForceControl: %d, CurrentLimit: %d, RobotType: %d, TorqueSensors: %d",
+    snprintf(tmp, 512, "<kinovapy.QuickStatus> Fingers: (%d, %d, %d), ControlEnable: %d, ControlModule: %d, ControlFrame: %d, CartesianFault: %d, ForceControl: %d, CurrentLimit: %d, RobotType: %d, TorqueSensors: %d",
       self->Finger1Status, self->Finger2Status, self->Finger3Status,
       self->ControlEnableStatus, self->ControlActiveModule,
       self->ControlFrameType, self->CartesianFaultState, 
@@ -120,19 +120,20 @@ int GetNumDevices() {
 %extend ForcesInfo {
   char *__str__() {
     static char tmp[512];
+    const float thresh = 0.1;
     snprintf(tmp, 512, "actuator_forces: [%f, %f, %f, %f, %f, %f], 'cartesian_forces: [%f, %f, %f, %f, %f, %f]",
-      self->Actuator1,
-      self->Actuator2,
-      self->Actuator3,
-      self->Actuator4,
-      self->Actuator5,
-      self->Actuator6,
-      self->X,
-      self->Y,
-      self->Z,
-      self->ThetaX,
-      self->ThetaY,
-      self->ThetaZ
+      self->Actuator1 > thresh ? self->Actuator1 : 0,
+      self->Actuator2 > thresh ? self->Actuator2 : 0,
+      self->Actuator3 > thresh ? self->Actuator3 : 0,
+      self->Actuator4 > thresh ? self->Actuator4 : 0,
+      self->Actuator5 > thresh ? self->Actuator5 : 0,
+      self->Actuator6 > thresh ? self->Actuator6 : 0,
+      self->X > thresh ? self->X : 0,
+      self->Y > thresh ? self->Y : 0,
+      self->Z > thresh ? self->Z : 0,
+      self->ThetaX > thresh ? self->ThetaX : 0,
+      self->ThetaY > thresh ? self->ThetaY : 0,
+      self->ThetaZ > thresh ? self->ThetaZ : 0
     );
     return tmp;
   }

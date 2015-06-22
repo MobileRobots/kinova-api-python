@@ -2,9 +2,12 @@
 import kinovapy
 import sys
 import time
+import math
 
 
 # TODO: rename to "arms" 
+# TODO: separate arm objects for left and right. arms.py provides access to
+# each, plus methods to do both
 # TODO: Add cartesian (plus hand orientation), force and velocity position modes.
 # TODO: rework to allow chunked sequences of trajectories.  Wait for each chunk
 # to complete, but queue all trajectories within chunk.
@@ -96,11 +99,12 @@ def home(armid = None):
       time.sleep(2)
       if armName[i] == 'left':
         print 'moving left out of the way'
-        movejoints(i, [42.022060, 149.859375, 285.330872, 125.045456, 245.568192, 285.681824])
+        movejoints(i, [42.022060, 149.859375, 285.330872, 125.045456, 240, 285])# 245.568192, 285.681824])
       else:
         print 'moving right out of the way'
-        movejoints(i, [308.713226, 207.890625, 67.996323, 174.818192, 245.522736, 288.477295] )
-      time.sleep(3)
+        movejoints(i, [308.713226, 207.890625, 67.996323, 174.818192, 240, 285]) # 245.522736, 288.477295] )
+      time.sleep(2)
+    time.sleep(4)
   else:
       kinovapy.SetActiveDeviceNum(armid)
       kinovapy.MoveHome()
@@ -133,9 +137,9 @@ def movejoints(i, j, fingerstate = None):
   if not init():
     return False
   else:
-    if i == 'left':
+    if i == 'left' or i == 'leftarm':
       i = armID['left']
-    elif i == 'right':
+    elif i == 'right' or i == 'rightarm':
       i = armID['right']
     kinovapy.SetActiveDeviceNum(i)
 
@@ -150,12 +154,13 @@ def movejoints(i, j, fingerstate = None):
     # Set velocity limitation to 30 degrees per second for joint 4, 5 and 6
     pointToSend.Limitations.speedParameter2 = 30.0
 
-    pointToSend.Position.Actuators.Actuator1 = j[0]
-    pointToSend.Position.Actuators.Actuator2 = j[1]
-    pointToSend.Position.Actuators.Actuator3 = j[2]
-    pointToSend.Position.Actuators.Actuator4 = j[3]
-    pointToSend.Position.Actuators.Actuator5 = j[4]
-    pointToSend.Position.Actuators.Actuator6 = j[5]
+    if j != None:
+      pointToSend.Position.Actuators.Actuator1 = j[0]
+      pointToSend.Position.Actuators.Actuator2 = j[1]
+      pointToSend.Position.Actuators.Actuator3 = j[2]
+      pointToSend.Position.Actuators.Actuator4 = j[3]
+      pointToSend.Position.Actuators.Actuator5 = j[4]
+      pointToSend.Position.Actuators.Actuator6 = j[5]
 
     if fingerstate != None:
       if fingerstate == 'open':
@@ -172,9 +177,80 @@ def movejoints(i, j, fingerstate = None):
         pointToSend.Position.Fingers.Finger3 = fingerstate[2]
 
     # Add the point to the robot's FIFO
-    print 'arm.py: Sending trajectory' 
+    print 'arm.py: Sending trajectory with angular positions' 
     kinovapy.SendAdvanceTrajectory(pointToSend)
-    #kinovapy.SendBasicTrajectory(pointToSend)
+#    kinovapy.SendBasicTrajectory(pointToSend)
+
+def moveby(whicharm, amt):
+  if not init():
+    return False
+  i = whicharm
+  if whicharm == 'left':
+    i = armID['left']
+  elif i == 'right':
+    i = armID['right']
+  kinovapy.SetActiveDeviceNum(i)
+  position = kinovapy.CartesianPosition()
+  kinovapy.GetCartesianPosition(position)
+  pos = [0, 0, 0]
+  pos[0] = position.Coordinates.X + amt[0]
+  pos[1] = position.Coordinates.Y + amt[1]
+  pos[2] = position.Coordinates.Z + amt[2]
+  moveto(whicharm, pos) 
+
+def moveto(whicharm, pos = None, ori = None, fingerstate = None):
+  if not init():
+    return False
+  i = whicharm
+  if whicharm == 'left' or whicharm == 'leftarm':
+    i = armID['left']
+  elif whicharm == 'right' or whicharm == 'rightarm':
+    i = armID['right']
+  kinovapy.SetActiveDeviceNum(i)
+
+  pointToSend =  kinovapy.TrajectoryPoint()
+  pointToSend.InitStruct()
+  pointToSend.Position.Type = kinovapy.CARTESIAN_POSITION
+  pointToSend.LimitationsActive = 1
+
+  # Set velocity limitation to 20 degrees per second for joint 1, 2 and 3.
+  pointToSend.Limitations.speedParameter1 = 20.0
+  # Set velocity limitation to 30 degrees per second for joint 4, 5 and 6
+  pointToSend.Limitations.speedParameter2 = 30.0
+
+  position = kinovapy.CartesianPosition()
+  kinovapy.GetCartesianPosition(position)
+  pointToSend.Position.CartesianPosition = position.Coordinates
+
+  if pos != None:
+    print 'arm.py moveto arm pos %s' % pos
+    pointToSend.Position.CartesianPosition.X = pos[0]
+    pointToSend.Position.CartesianPosition.Y = pos[1]
+    pointToSend.Position.CartesianPosition.Z = pos[2]
+
+  if ori != None:
+    print 'arm.py moveto arm ori %s' % ori
+    pointToSend.Position.CartesianPosition.ThetaX = ori[0]
+    pointToSend.Position.CartesianPosition.ThetaY = ori[1]
+    pointToSend.Position.CartesianPosition.ThetaZ = ori[2]
+
+  if fingerstate != None:
+    print 'arm.py moveto fingerstate=%s' % fingerstate
+    if fingerstate == 'open' or fingerstate == 'opened':
+      pointToSend.Position.Fingers.Finger1 = openfingerstate[0]
+      pointToSend.Position.Fingers.Finger2 = openfingerstate[1]
+      pointToSend.Position.Fingers.Finger3 = openfingerstate[2]
+    elif fingerstate == 'close' or fingerstate == 'closed':
+      pointToSend.Position.Fingers.Finger1 = closedfingerstate[0]
+      pointToSend.Position.Fingers.Finger2 = closedfingerstate[1]
+      pointToSend.Position.Fingers.Finger3 = closedfingerstate[2]
+    else:
+      pointToSend.Position.Fingers.Finger1 = fingerstate[0]
+      pointToSend.Position.Fingers.Finger2 = fingerstate[1]
+      pointToSend.Position.Fingers.Finger3 = fingerstate[2]
+
+  print 'arm.py: Sending trajectory with cartesian positions' 
+  kinovapy.SendAdvanceTrajectory(pointToSend)
 
 
 def setfingers(f):
@@ -230,5 +306,19 @@ if __name__ == '__main__':
   status = kinovapy.QuickStatus()
   kinovapy.GetQuickStatus(status)
   print status
+
+  home()
+  moveto('right', [-0.1, -0.5, 0.1], [0, 0, 0])
+  moveto('left', [0.1, -0.5, 0.1], [0, 0, 0])
+  
+  print 'right hand left'
+  moveto('right', [-0.1, -0.5, 0.1], [0, 0, math.radians(90)])
+  print 'right hand right'
+  moveto('right', [-0.1, -0.5, 0.1], [0, 0, math.radians(-90)])
+  print 'right hand down'
+  moveto('right', [-0.1, -0.5, 0.1], [0, 0, 0])
+  print 'right hand out'
+  moveto('right', [-0.1, -0.5, 0.1], [math.radians(90), 0, 0])
+
   close()
 

@@ -4,9 +4,9 @@ import sys
 import arm
 import armdemo
 import time
+import ptu
 
-#demogoal = 'Arm Demo'
-demogoal = 'Home'
+demogoal = 'Arm Demo'
 
 
 arm.init()
@@ -39,8 +39,8 @@ def statusChanged(status):
     print '-------------------------'
 
     # Resume tour:
-    time.sleep(3)
-    arm.park()
+    #time.sleep(3)
+    #arm.park()
     time.sleep(3)
     #arm.closefingers()
     clientbase.requestOnce('tourGoals')

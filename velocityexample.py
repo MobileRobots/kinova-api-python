@@ -6,10 +6,9 @@
 
 import kinovapy
 import sys
-import pygame
+#import pygame
 
 
-"""
 if kinovapy.InitAPI() != kinovapy.NO_ERROR_KINOVA:
   print 'Error initializing Kinova API'
   sys.exit(1)
@@ -30,13 +29,12 @@ for i in xrange(0, deviceCount):
   print status
 
 
-"""
 
 # TODO set up exclusion zone
 
-pygame.init()
-screen = pygame.display.set_mode((320, 240))
-pygame.key.set_repeat() # disable repeat
+#pygame.init()
+#screen = pygame.display.set_mode((320, 240))
+#pygame.key.set_repeat() # disable repeat
 
 
 pointToSend = kinovapy.TrajectoryPoint()
@@ -44,10 +42,10 @@ pointToSend.InitStruct()
 pointToSend.Position.Type = kinovapy.CARTESIAN_VELOCITY
 
 while True:
-  evts = pygame.event.get()
-  if pygame.QUIT in evts:
-    sys.exit(0)
-  keys = pygame.key.get_pressed()
+  #evts = pygame.event.get()
+  #if pygame.QUIT in evts:
+  #  sys.exit(0)
+  #keys = pygame.key.get_pressed()
 
   if keys[pygame.K_0]:
     kinovapy.SetActiveDeviceNum(0)

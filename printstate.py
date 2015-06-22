@@ -15,34 +15,56 @@ if deviceCount < 0:
 print >> sys.stderr, 'Found %d devices' % deviceCount
 
 for i in xrange(0, deviceCount):
-  print >> sys.stderr, 'Selecting arm #%d' % (i)
+  print >> sys.stderr, '\nSelecting arm #%d' % (i)
   kinovapy.SetActiveDeviceNum(i)
 
   clientconfig = kinovapy.ClientConfigurations()
   kinovapy.GetClientConfigurations(clientconfig)
-  print >> sys.stderr,  clientconfig.ClientID
+  print >> sys.stderr,  'ClientID="%s"' % (clientconfig.ClientID)
   if clientconfig.Laterality == kinovapy.LEFTHAND:
-    print >> sys.stderr,  'LEFTHAND'
+    print >> sys.stderr,  'Laterality is LEFTHAND'
   else:
-    print >> sys.stderr,  'RIGHTHAND'
+    print >> sys.stderr,  'Laterality is RIGHTHAND'
 
+  print >> sys.stderr, 'Getting quick status...'
   status = kinovapy.QuickStatus()
   kinovapy.GetQuickStatus(status)
-  kinovapy.InitFingers()
 
+#  print >> sys.stderr, 'Init Fingers...'
+#  kinovapy.InitFingers()
+
+  print >> sys.stderr, 'Status: ',
   print >> sys.stderr,  status
 
-  actualPosition = kinovapy.AngularPosition()
-  kinovapy.GetAngularCommand(actualPosition)
+  print >> sys.stderr, 'Getting angular position...',
+  jointPosition = kinovapy.AngularPosition()
+  kinovapy.GetAngularPosition(jointPosition)
+  #kinovapy.GetAngularCommand(jointPosition)
+  print >> sys.stderr,  jointPosition
 
+  print >> sys.stderr, 'Getting cartesian position...',
+  position = kinovapy.CartesianPosition()
+  kinovapy.GetCartesianPosition(position)
+  print >> sys.stderr, position
 
-  print >> sys.stderr,  actualPosition
+  print >> sys.stderr, 'Getting force info...',
+  forceinfo = kinovapy.ForcesInfo()
+  kinovapy.GetForcesInfo(forceinfo)
+  print >> sys.stderr, forceinfo
+
+  
 
   if clientconfig.Laterality == kinovapy.LEFTHAND:
-    print '  \'left\': ',
+    print '  \'left\': { '
   else:
-    print '  \'right\': ',
-  print actualPosition.Actuators,
+    print '  \'right\': { '
+  
+  print '    \'joints\': ',
+  print jointPosition.Actuators,
+  print ', '
+  print '    \'pos\': ',
+  print position.Coordinates
+  print '  }',
   if i == (deviceCount-1): # last
     print ''
   else:
