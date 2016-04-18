@@ -3,12 +3,18 @@ Use SWIG to build a simple Python wrapper for the Kinova library.  Swig is used
 to generate a wrapper shared library `_kinovapy.so` and a wrapper python module
 `kinovapy.py`.  
 
+Building
+--------
+
 Run `make` to build.  The Makefile assumes you are using Python
 2.7 and have the Kinova API libraries and header files installed in default
 locations.  To use a different version of Python or alternate locations or Kinova 
 library, you can override the Make variables `PYTHON_INCLUDE` (Python include
 directory path), `KINOVA_INCLUDE_DIR` (Kinova include directory path),
 `KINOVA_LINK` (Kinova linker flags).
+
+You will need `swig` (tested with Swig 1.3) and Python development packages
+installed (install `python2.7-dev` on Ubuntu/Debian).
 
 For example, to use `emulate_kinova` library instead
 of the real Kinova library:
@@ -18,18 +24,32 @@ of the real Kinova library:
 Use the `-l:` link option instead of `-l` since the Kinova libraries and
 `emulate_kinova` library don't start with "lib".
 
-Swig cannot parse the relatively new GCC "visibilty" attribute used by
-the Kinova header files, so you may want to use the header files from
-`emulate-kinova-api` even if using the real Kinova library, since the
-emulate-kinova-api headers have been modified to omit the "visibilty" attributes
-on functions if `KINOVA_NOEXPORT` is define, which this Swig wrapper does:
+Swig cannot parse some nested classes and the relatively new GCC "visibilty" 
+attribute used by the standard Kinova header files, so you may want to use the 
+header files from `emulate-kinova-api` even if using the real Kinova library, 
+since the emulate-kinova-api headers have been modified to omit the "visibilty" 
+attributes on functions if `KINOVA_NOEXPORT` is define, which this Swig wrapper 
+does, and other minor changes.
+
+To do so set `KINOVA_INCLUDE_DIR` environment variable or set it on the `make`
+command line as follows:
 
     make KINOVA_INCLUDE_DIR=../emulate-kinova-api/headers.50104
+
+(`emulate-kinova-api` contains several `headers` directories for various
+versions of the Kinova API.)
 
 You will also need to add the library directory to the `LD_LIBRARY_PATH`
 environment variable (e.g. for the example above, use `export
 LD_LIBRARY_PATH=$LD_LIBRARY_PATH:../emulate-kinova-api`). Or copy the shared
 library to the same directory as the Python module.
+
+The default Python include directory (`PYTHON_INCLUDE`) is 
+`/usr/include/python2.7` for Python 2.7.  If you have a different version 
+of Python installed, you can set `PYTHON_INCLUDE` to a different directory.
+
+Use
+---
 
 The Python module is named `kinovapy`:
 
