@@ -17,7 +17,7 @@ You will need `swig` (tested with Swig 1.3) and Python development packages
 installed (install `python2.7-dev` on Ubuntu/Debian).
 
 For example, to use `emulate_kinova` library instead
-of the real Kinova library:
+of the real 5.1.4 Kinova library:
 
     make KINOVA_INCLUDE_DIR=../emulate-kinova-api/headers.50104 KINOVA_LINK=-L../emulate-kinova-api -l:emulate_kinova_50104.so
 
@@ -28,16 +28,19 @@ Swig cannot parse some nested classes and the relatively new GCC "visibilty"
 attribute used by the standard Kinova header files, so you may want to use the 
 header files from `emulate-kinova-api` even if using the real Kinova library, 
 since the emulate-kinova-api headers have been modified to omit the "visibilty" 
-attributes on functions if `KINOVA_NOEXPORT` is define, which this Swig wrapper 
+attributes on functions if `KINOVA_NOEXPORT` is defined, which this Swig wrapper 
 does, and other minor changes.
 
 To do so set `KINOVA_INCLUDE_DIR` environment variable or set it on the `make`
-command line as follows:
+command line.  You must choose the headers directory that matches the version
+of the real Kinova library you are going to link to. For example, for version
+5.2.0:
 
-    make KINOVA_INCLUDE_DIR=../emulate-kinova-api/headers.50104
+    make KINOVA_INCLUDE_DIR=../emulate-kinova-api/headers.50200
 
-(`emulate-kinova-api` contains several `headers` directories for various
-versions of the Kinova API.)
+For 5.1.4 instead, use "headers.50104", and for 5.1.1, use "headers.50101".
+This will prevent mismatch between the contents of the headers and the actual
+symbols library.
 
 You will also need to add the library directory to the `LD_LIBRARY_PATH`
 environment variable (e.g. for the example above, use `export
