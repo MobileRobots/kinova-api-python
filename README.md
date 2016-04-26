@@ -16,13 +16,17 @@ directory path), `KINOVA_INCLUDE_DIR` (Kinova include directory path),
 You will need `swig` (tested with Swig 1.3) and Python development packages
 installed (install `python2.7-dev` on Ubuntu/Debian).
 
-For example, to use `emulate_kinova` library instead
-of the real 5.1.4 Kinova library:
+For example, to use `emulate_kinova` library instead of the real 5.1.4 Kinova,
+build emulate-kinova-api first, then make this wrapper with:
 
-    make KINOVA_INCLUDE_DIR=../emulate-kinova-api/headers.50104 KINOVA_LINK=-L../emulate-kinova-api -l:emulate_kinova_50104.so
+    make KINOVA_INCLUDE_DIR=../emulate-kinova-api/headers.50104 KINOVA_LINK="-L../emulate-kinova-api -l:emulate_kinova_50104.so"
 
 Use the `-l:` link option instead of `-l` since the Kinova libraries and
-`emulate_kinova` library don't start with "lib".
+`emulate_kinova` library don't start with "lib".  To use a different header
+file version, specify the alternate version in both thet headers directory
+and library name.  For example, for 5.2.0:
+
+    make KINOVA_INCLUDE_DIR=../emulate-kinova-api/headers.50200 KINOVA_LINK="-L../emulate-kinova-api -l:emulate_kinova_50200.so"
 
 Swig cannot parse some nested classes and the relatively new GCC "visibilty" 
 attribute used by the standard Kinova header files, so you may want to use the 
