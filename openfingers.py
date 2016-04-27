@@ -1,4 +1,4 @@
-
+#!/usr/bin/python
 import kinovapy
 import sys
 
@@ -56,9 +56,9 @@ for i in xrange(0, deviceCount):
 #    pointToSend.Position.Fingers.Finger2 = 4500.0
 #    pointToSend.Position.Fingers.Finger3 = 4500.0
 #  else:
-  pointToSend.Position.Fingers.Finger1 = 4000.0
-  pointToSend.Position.Fingers.Finger2 = 4000.0
-  pointToSend.Position.Fingers.Finger3 = 4000.0
+  pointToSend.Position.Fingers.Finger1 = 10.0
+  pointToSend.Position.Fingers.Finger2 = 10.0
+  pointToSend.Position.Fingers.Finger3 = 10.0
 
   print "Sending trajectory 1" 
 

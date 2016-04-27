@@ -1,4 +1,4 @@
-
+#!/usr/bin/python
 import kinovapy
 import sys
 
@@ -24,10 +24,9 @@ pointToSend.Limitations.speedParameter2 = 0.7
 #pointToSend.Position.CartesianPosition.X = -0.30
 #pointToSend.Position.CartesianPosition.Y = 0.30
 #pointToSend.Position.CartesianPosition.Z = 0.30
-
-pointToSend.Position.CartesianPosition.ThetaX = 1.55
-pointToSend.Position.CartesianPosition.ThetaY = 1.02
-pointToSend.Position.CartesianPosition.ThetaZ = -0.03
+#pointToSend.Position.CartesianPosition.ThetaX = 1.55
+#pointToSend.Position.CartesianPosition.ThetaY = 1.02
+#pointToSend.Position.CartesianPosition.ThetaZ = -0.03
 pointToSend.Position.Fingers.Finger1 = 45.0
 pointToSend.Position.Fingers.Finger2 = 45.0
 pointToSend.Position.Fingers.Finger3 = 45.0
@@ -38,10 +37,10 @@ print 'Found %d devices' % deviceCount
 for i in xrange(0, deviceCount):
   print '\nSelecting arm #%d' % (i)
   kinovapy.SetActiveDeviceNum(i)
-  print 'Homing...'
-  kinovapy.MoveHome()
-  print 'Init Fingers...'
-  kinovapy.InitFingers()
+  #print 'Homing...'
+  #kinovapy.MoveHome()
+  #print 'Init Fingers...'
+  #kinovapy.InitFingers()
   position = kinovapy.CartesianPosition()
   kinovapy.GetCartesianPosition(position)
   pointToSend.Position.CartesianPosition = position.Coordinates
@@ -84,16 +83,16 @@ while True:
     kinovapy.GetCartesianPosition(position)
     print position
 
-    pointToSend.Position.CartesianPosition.X = input_position('X', pointToSend.Position.CartesianPosition.X)
-    pointToSend.Position.CartesianPosition.Y = input_position('Y', pointToSend.Position.CartesianPosition.Y)
-    pointToSend.Position.CartesianPosition.Z = input_position('Z', pointToSend.Position.CartesianPosition.Z)
+    pointToSend.Position.CartesianPosition.X = input_position('X', pointToSend.Position.CartesianPosition.X, 2)
+    pointToSend.Position.CartesianPosition.Y = input_position('Y', pointToSend.Position.CartesianPosition.Y, 2)
+    pointToSend.Position.CartesianPosition.Z = input_position('Z', pointToSend.Position.CartesianPosition.Z, 2)
 
     print 'Moving to position (%f, %f, %f)...' % ( pointToSend.Position.CartesianPosition.X, pointToSend.Position.CartesianPosition.Y, pointToSend.Position.CartesianPosition.Z )
-    kinovapy.SendAdvanceTrajectory(pointToSend)
+    #kinovapy.SendAdvanceTrajectory(pointToSend)
 
-    pointToSend.Position.ThetaX = input_position('ThetaX', pointToSend.Position.CartesianPosition.ThetaX)
-    pointToSend.Position.ThetaY = input_position('ThetaY', pointToSend.Position.CartesianPosition.ThetaY)
-    pointToSend.Position.ThetaZ = input_position('ThetaZ', pointToSend.Position.CartesianPosition.ThetaZ)
+    pointToSend.Position.ThetaX = input_position('ThetaX', pointToSend.Position.CartesianPosition.ThetaX, 360)
+    pointToSend.Position.ThetaY = input_position('ThetaY', pointToSend.Position.CartesianPosition.ThetaY, 360)
+    pointToSend.Position.ThetaZ = input_position('ThetaZ', pointToSend.Position.CartesianPosition.ThetaZ, 360)
     print 'Moving to orientation (%f, %f, %f)...' % ( pointToSend.Position.CartesianPosition.ThetaX, pointToSend.Position.CartesianPosition.ThetaY, pointToSend.Position.CartesianPosition.ThetaZ )
     kinovapy.SendAdvanceTrajectory(pointToSend)
 

@@ -1,4 +1,4 @@
-
+#!/usr/bin/python
 import kinovapy
 import sys
 import time
@@ -25,7 +25,9 @@ oldoldparkstate = {
 }
 
 openfingerstate = [10, 10, 10]
-closedfingerstate = [5000, 5000, 5000]
+closedfingerstate = [6600, 6000, 6000]
+
+closethumb = [7000, 15, 15]
 
 oldparkstate = {
     'right': [271.378693, 312.187500, 136.985291, 219.204559, 2.863636, 77.795456],
@@ -47,6 +49,11 @@ preparkstate = {
   'right': [317.715881, 293.638519, 122.578148, 122.033569, 349.920776, 289.153442]
 }
 
+
+foldstate = {  
+    'right':  [274.411774, 279.890625, 19.301470, 87.613640, 178.840912, 289.909088] , 
+    'left':  [90.937500, 83.296875, 342.242645, 286.772736, 157.159088, 324.681824] , 
+} 
 
 deviceCount = 0
 initialized = False
@@ -130,66 +137,85 @@ def movearms(jointstate):
     fingername = armname+'fingers'
     fingerstate = None
     if fingername in jointstate.keys():
+      print 'arm.py: movearms: given state has a fingerstate'
       fingerstate = jointstate[fingername]
     movejoints(i, j, fingerstate)
+
+def getArmID(armname):
+  if armname == 'left' or armname == 'leftarm':
+    return armID['left']
+  elif armname == 'right' or armname == 'rightarm':
+    return armID['right']
+  else:
+    return armname
+
+def chooseArm(i):
+  i = getArmID(i)
+  kinovapy.SetActiveDeviceNum(i)
 
 def movejoints(i, j, fingerstate = None):
   if not init():
     return False
+  chooseArm(i)
+
+  pointToSend =  kinovapy.TrajectoryPoint()
+  pointToSend.InitStruct()
+
+  pointToSend.Position.Type = kinovapy.ANGULAR_POSITION
+  pointToSend.LimitationsActive = 1
+
+  # Set velocity limitation to 20 degrees per second for joint 1, 2 and 3.
+  pointToSend.Limitations.speedParameter1 = 20.0
+
+  # Set velocity limitation to 30 degrees per second for joint 4, 5 and 6
+  pointToSend.Limitations.speedParameter2 = 30.0
+
+  if j == None:
+     curpos = kinovapy.AngularPosition()
+     curpos.InitStruct()
+     kinovapy.GetAngularPosition(curpos)
+     pointToSend.Position = curpos
   else:
-    if i == 'left' or i == 'leftarm':
-      i = armID['left']
-    elif i == 'right' or i == 'rightarm':
-      i = armID['right']
-    kinovapy.SetActiveDeviceNum(i)
+     pointToSend.Position.Actuators.Actuator1 = j[0]
+     pointToSend.Position.Actuators.Actuator2 = j[1]
+     pointToSend.Position.Actuators.Actuator3 = j[2]
+     pointToSend.Position.Actuators.Actuator4 = j[3]
+     pointToSend.Position.Actuators.Actuator5 = j[4]
+     pointToSend.Position.Actuators.Actuator6 = j[5]
 
-    pointToSend =  kinovapy.TrajectoryPoint()
-    pointToSend.InitStruct()
-    pointToSend.Position.Type = kinovapy.ANGULAR_POSITION
-    pointToSend.LimitationsActive = 1
-
-    # Set velocity limitation to 20 degrees per second for joint 1, 2 and 3.
-    pointToSend.Limitations.speedParameter1 = 20.0
-
-    # Set velocity limitation to 30 degrees per second for joint 4, 5 and 6
-    pointToSend.Limitations.speedParameter2 = 30.0
-
-    if j != None:
-      pointToSend.Position.Actuators.Actuator1 = j[0]
-      pointToSend.Position.Actuators.Actuator2 = j[1]
-      pointToSend.Position.Actuators.Actuator3 = j[2]
-      pointToSend.Position.Actuators.Actuator4 = j[3]
-      pointToSend.Position.Actuators.Actuator5 = j[4]
-      pointToSend.Position.Actuators.Actuator6 = j[5]
-
-    if fingerstate != None:
-      if fingerstate == 'open':
+  if fingerstate == None:
+    curpos = kinovapy.AngularPosition()
+    kinovapy.GetAngularPosition(curpos)
+    print 'arm.py: movejoints: no finger state given, using existing %s' % (curpos)
+    pointToSend.Position.Fingers.Finger1 = curpos.Fingers.Finger1 
+    pointToSend.Position.Fingers.Finger2 = curpos.Fingers.Finger2 
+    pointToSend.Position.Fingers.Finger3 = curpos.Fingers.Finger3 
+  else:
+     print 'arm.py: movejoints: finger state was given'
+     if fingerstate == 'open':
+	print 'arm.py movejoints: open fingers'
         pointToSend.Position.Fingers.Finger1 = openfingerstate[0]
         pointToSend.Position.Fingers.Finger2 = openfingerstate[1]
         pointToSend.Position.Fingers.Finger3 = openfingerstate[2]
-      elif fingerstate == 'close':
+     elif fingerstate == 'close':
+	print 'arm.py movejoints: close fingers'
         pointToSend.Position.Fingers.Finger1 = closedfingerstate[0]
         pointToSend.Position.Fingers.Finger2 = closedfingerstate[1]
         pointToSend.Position.Fingers.Finger3 = closedfingerstate[2]
-      else:
+     else:
         pointToSend.Position.Fingers.Finger1 = fingerstate[0]
         pointToSend.Position.Fingers.Finger2 = fingerstate[1]
         pointToSend.Position.Fingers.Finger3 = fingerstate[2]
 
-    # Add the point to the robot's FIFO
-    print 'arm.py: Sending trajectory with angular positions' 
-    kinovapy.SendAdvanceTrajectory(pointToSend)
+  # Add the point to the robot's FIFO
+  print 'arm.py: Sending trajectory with angular positions' 
+  kinovapy.SendAdvanceTrajectory(pointToSend)
 #    kinovapy.SendBasicTrajectory(pointToSend)
 
 def moveby(whicharm, amt):
   if not init():
     return False
-  i = whicharm
-  if whicharm == 'left':
-    i = armID['left']
-  elif i == 'right':
-    i = armID['right']
-  kinovapy.SetActiveDeviceNum(i)
+  chooseArm(whicharm)
   position = kinovapy.CartesianPosition()
   kinovapy.GetCartesianPosition(position)
   pos = [0, 0, 0]
@@ -201,12 +227,7 @@ def moveby(whicharm, amt):
 def moveto(whicharm, pos = None, ori = None, fingerstate = None):
   if not init():
     return False
-  i = whicharm
-  if whicharm == 'left' or whicharm == 'leftarm':
-    i = armID['left']
-  elif whicharm == 'right' or whicharm == 'rightarm':
-    i = armID['right']
-  kinovapy.SetActiveDeviceNum(i)
+  chooseArm(whicharm)
 
   pointToSend =  kinovapy.TrajectoryPoint()
   pointToSend.InitStruct()
@@ -252,8 +273,10 @@ def moveto(whicharm, pos = None, ori = None, fingerstate = None):
   print 'arm.py: Sending trajectory with cartesian positions' 
   kinovapy.SendAdvanceTrajectory(pointToSend)
 
+def setfinger(arm, f):
+  chooseArm(arm)
 
-def setfingers(f):
+def setfingers(f, arm = None):
   global deviceCount
   for i in xrange(0, deviceCount):
     print 'fingers: Selecting arm #%d' % (i)
@@ -293,13 +316,27 @@ def close():
 
 def park():
   print 'arm.py: prepark'
+  closefingers()
+  time.sleep(5)
   movearms(preparkstate)
   time.sleep(5)
   print 'arm.py: park'
   movearms(parkstate)
   print 'arm.py: closefingers'
   time.sleep(6)
+
+def fold():
+  print 'arm.py: fold'
+  movearms(preparkstate)
+  time.sleep(5)
+  movearms(foldstate)
   closefingers()
+  time.sleep(8)
+
+def status():
+  status = kinovapy.QuickStatus()
+  kinovapy.GetQuickStatus(status)
+  return status
 
 if __name__ == '__main__':
   init()

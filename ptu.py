@@ -1,3 +1,4 @@
+#!/usr/bin/python
 from AriaPy import *
 import sys
 import time
@@ -25,8 +26,10 @@ def initptu():
   ptu.setDeviceConnection(con)
   ptu.init()
   time.sleep(2)
-#  ptu.panSlew(ptu.getMaxPanSlew() - 20)
-#  ptu.tiltSlew(ptu.getMaxTiltSlew() - 20)
+#  recalib()
+#  time.sleep(10)
+  ptu.panSlew(ptu.getMaxPanSlew() - 20)
+  ptu.tiltSlew(ptu.getMaxTiltSlew() - 20)
   ptuinitialized = True
   return True
 
@@ -35,6 +38,8 @@ def pantilt(angles):
     return False
   global ptu
   print 'ptu.py: moving to angles %f, %f' % (angles[0], angles[1])
+  if(angles[1] <= -45): 
+    angles[1] = -45
   ptu.panTilt(angles[0], angles[1])    
   return True
 
@@ -59,13 +64,13 @@ def lookat(pos):
     t = math.degrees( math.atan( x / (z + tiltoffset) ) ) 
   print 'ptu lookat: pos [%f, %f, %f] -> angles [%f, %f].' % (x, y, z, p, t)
   if p > ptu.getMaxPosPan():
-    p = ptu.getMaxPosPan() - 5
+    p = ptu.getMaxPosPan() - 10
   elif p < ptu.getMaxNegPan():
-    p = ptu.getMaxNegPan() + 5
+    p = ptu.getMaxNegPan() + 10
   if t > ptu.getMaxPosTilt():
-    t = ptu.getMaxPosTilt() - 5
+    t = ptu.getMaxPosTilt() - 10
   elif t < ptu.getMaxNegTilt():
-    t = ptu.getMaxNegTilt() + 5
+    t = ptu.getMaxNegTilt() + 10
   print 'ptu lookat: moving to [%f, %f]' % (p, t)
   ptu.panTilt( p , t )
   return True
@@ -74,6 +79,11 @@ def wait():
   global ptu
   print 'ptu.py: waiting for ptu to finish moving...'
   ptu.awaitExec()
+
+def recalib():
+  global ptu
+  print 'ptu.py: recalib...'
+  ptu.resetCalib()
 
 if __name__ == '__main__':
   initptu()
@@ -97,7 +107,7 @@ if __name__ == '__main__':
   pantilt([0, 0])
   time.sleep(2)
 
-  ptu.reset()
+  #recalib()
 
   print 'lookat 0.5, 0.3, -0.1, should be to the right and down a bit'
   lookat([0.5, 0.3, -0.2])
@@ -115,7 +125,16 @@ if __name__ == '__main__':
   lookat([0.1, 0, -0.7])
   time.sleep(4)
 
-  print 'lookat 100, 0, 0, should be straight ahead'
-  lookat([100, 0, 0])
+  print 'lookat 1000, 0, 0, should be straight ahead'
+  lookat([1000, 0, 0])
   time.sleep(4)
+
+  print 'center'
+  pantilt([0, 0])
+  time.sleep(2)
+
+  print 'relaib'
+  recalib()
+  time.sleep(4)
+
 

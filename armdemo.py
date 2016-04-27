@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 from AriaPy import *
 from ArNetworkingPy import *
 import sys
@@ -11,14 +13,26 @@ import math
 
 pausetime = 5 # wait between sending each trajectory to the arms
 
+doptu = True
+
+initseq = [
+    'armsdown'
+]
+
+offerseq = [
+   'offer_right',
+   'openfingers',
+   'offer_wait',
+   'closefingers',
+   'armsdown',
+   'down_wait'
+]
 
 
-demoseq = [
-   'armsout',
+generaldemoseq = [
    'armsforward',
    'lookdown',
    'armsdown',
-   'armsout',
    'lookcenter',
    'funky_up',
    'lookup',
@@ -29,6 +43,8 @@ squareseq = [
    'square1', 'squarepause', 'square2', 'squarepause', 'square3', 'squarepause',
 'square4', 'squarepause', 'square5', 'pause3sec', 'handout', 'pause3sec', 'handleft', 'pause3sec', 'handright'
 ]
+
+demoseq =  generaldemoseq
 
 # Different options for each state, each state can have some or any of these:
 PAUSE = 'pause'
@@ -72,6 +88,7 @@ states = {
     { RIGHTARM: { HANDPOS : [-0.2, -0.5, 0.1], HANDORI: ORI_DOWN, FINGERS: CLOSED }
      },
 
+
   'square2':
     { RIGHTARM: { HANDPOS : [-0.2, -0.6, 0.1], HANDORI: ORI_DOWN } 
     },
@@ -101,8 +118,24 @@ states = {
       RIGHTARM: { JOINTS: [273.419128, 269.062500, 142.003677, 182.113647, 257.045471, 288.477295]  }
     }, 
 
+  'offer_right': 
+    {RIGHTARM: { JOINTS: 
+	 [282.297791, 316.312500, 242.647064, 198.886368, 39.613636, 40.840912]
+	}
+    },
+
+    'offer_wait': { PAUSE: 30 },
+    'down_wait': { PAUSE: 20 },
+
+   'down_right':
+	{RIGHTARM:  {JOINTS:	    [280.863983, 312.281250, 119.558823, 150.545456, 357.204559, 290.454559] 
+	} },
+   'down_left':
+	{LEFTARM:  {JOINTS:	    [280.863983, 312.281250, 119.558823, 150.545456, 357.204559, 290.454559] 
+	} },
+
   'lookdown': 
-    { PANTILT: [0, -35] },
+    { PANTILT: [0, -25] },
 
   'lookleft': 
     { PANTILT: [35, -3] },
@@ -111,7 +144,7 @@ states = {
     { PANTILT: [-35, -3] },
 
   'lookcenter': 
-    { PANTILT: [0, -3] },
+    { PANTILT: [1, -3] },
 
   'lookup': 
     { PANTILT: [0, 25] },
@@ -200,10 +233,10 @@ def dostate(name):
       elif f == 'OPENED':
         arm.openfingers()
 
-    if PANTILT in s.keys():
+    if PANTILT in s.keys() and doptu:
       print 'doing pantilt %s' % s['pantilt']
       ptu.pantilt(s[PANTILT])
-    elif LOOKAT in s.keys():
+    elif LOOKAT in s.keys() and doptu:
       armx = s[LOOKAT][0]
       army = s[LOOKAT][1]
       armz = s[LOOKAT][2]
@@ -227,22 +260,30 @@ def doseq(seq):
       dostate(si)
     time.sleep(pausetime)
 
-def demo():
+def do_demo_seq():
   doseq(demoseq)
   # end of demo sequence
   ptu.pantilt([0, 0])
   arm.park()
   arm.closefingers()
 
+def demo():
+  do_demo_seq()
+
+def do_init_seq():
+  doseq(initseq)
+
 def initptu():
   return ptu.initptu()
 
 if __name__ == '__main__':
-  arm.init()
-  arm.home()
+#  arm.init()
+#  arm.home()
   arm.init_fingers()
 
-  ptu.initptu()
+  if doptu:
+    ptu.initptu()
+    time.sleep(30)
   #ptu.pantilt([5, 0])
   #ptu.pantilt([-5, 0])
   #ptu.pantilt([0, 0])
@@ -250,8 +291,10 @@ if __name__ == '__main__':
   #ptu.pantilt([0, 5])
   #ptu.pantilt([0, 0])
 
+  do_init_seq()
+
   while True:
-    demo()
+    do_demo_seq()
     time.sleep(5)
 
   arm.close()
