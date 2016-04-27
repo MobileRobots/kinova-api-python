@@ -7,9 +7,11 @@ import arm
 import time
 import ptu
 
+# Change these if neccesary
+demogoal = 'Arm Demo'
+hostname = '192.168.0.32'
 
-demogoal = 'kinovademo'
-
+# Initialize both arms. See arm.py.
 arm.init()
 #arm.home()
 arm.closefingers()
@@ -18,21 +20,22 @@ arm.park()
 
 Aria.init()
 
-#armdemo.initptu()
+# Initialize PTU, see armdemo.py and ptu.py.
+armdemo.initptu()
 
-clientbase = ArClientBase()
+arnlServerConn = ArClientBase()
 arrived = False
 
 def statusChanged(status):
   print 'new status: ', status
   if status == 'Touring to '+demogoal:
     print 'arnl_armdemo Forcing gotoGoal'
-    clientbase.requestOnceWithString('gotoGoal', demogoal)
+    arnlServerConn.requestOnceWithString('gotoGoal', demogoal)
     return
   elif(status == 'Arrived at '+demogoal):
     print 'arrived'
     arrived = True
-    clientbase.requestOnce('stop')
+    arnlServerConn.requestOnce('stop')
 
     # do arm demo here:
     print '------- Arm Demo --------'
@@ -62,25 +65,26 @@ def statusChanged(status):
     #arm.park()
     time.sleep(3)
     #arm.closefingers()
-    clientbase.requestOnce('tourGoals')
+    arnlServerConn.requestOnce('tourGoals')
     return
   elif(status == 'Failed to get home'):
     # just keep trying
-    clientbase.requestOnce('home')
+    arnlServerConn.requestOnce('home')
   elif(status[0:6] == 'Failed'):
     # will tour to next goal, skip this one
-    clientbase.requestOnce('tourGoals')
+    arnlServerConn.requestOnce('tourGoals')
   else:
     arrived = False
 
-if not clientbase.blockingConnect("goo.local", 7272):
-  print "Could not connect to server at goo.local port 7272, exiting"
+if not arnlServerConn.blockingConnect(hostname, 7272):
+  print "Could not connect to server at %s port 7272, exiting" % (hostname)
   Aria.exit(1);
 print 'connected to goo.local. will do arm demo when we reach a goal named ' + demogoal
 
-clientupdate = ArClientHandlerRobotUpdate(clientbase)
+# Monitor changes in ARNL server status
+clientupdate = ArClientHandlerRobotUpdate(arnlServerConn)
 clientupdate.addStatusChangedCB(statusChanged)
 clientupdate.requestUpdates(300)
-clientbase.run()
+arnlServerConn.run()
 
 arm.close()

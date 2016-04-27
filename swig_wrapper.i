@@ -17,18 +17,20 @@ int SetActiveDeviceNum(int d) {
   int result;
   int count = GetDevices(devices, result);
   if(result != NO_ERROR_KINOVA) 
-    return -1;
+    return -1 * result;
   if(d > count || d > MAX_KINOVA_DEVICE)
     return -1;
   return SetActiveDevice(devices[d]);
 }
 
 int GetNumDevices() {
-  int result = NO_ERROR_KINOVA; 
-  int count = GetDeviceCount(result);
+  KinovaDevice devices[MAX_KINOVA_DEVICE];
+  int result = -1;
+  int count = GetDevices(devices, result);
   if(result != NO_ERROR_KINOVA)
-    return -1;
-  return count;
+    return -1 * result;
+  else
+    return count;
 }
 
 %}
