@@ -92,10 +92,13 @@ int GetNumDevices() {
 %extend CartesianPosition {
   char *__str__() {
     static char tmp[512];
-    snprintf(tmp, 512, "<kinovapy.CartesianPosition> Coordinates: [%f, %f, %f], Fingers: [%f, %f, %f]",
+    snprintf(tmp, 512, "<kinovapy.CartesianPosition> Coordinates: Position: [%f, %f, %f], Orientation: [%f, %f, %f], Fingers: [%f, %f, %f]",
       self->Coordinates.X,
       self->Coordinates.Y,
       self->Coordinates.Z,
+      self->Coordinates.ThetaX,
+      self->Coordinates.ThetaY,
+      self->Coordinates.ThetaZ,
       self->Fingers.Finger1,
       self->Fingers.Finger2,
       self->Fingers.Finger3
